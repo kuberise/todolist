@@ -16,7 +16,22 @@ func NewRepository(db *sql.DB) gateway.Respository {
 	return &repository{db: db}
 }
 
-func (r *repository) Index(ctx context.Context) ([]string, error) {
+func (r *repository) RemoveTODO(ctx context.Context, todo string) error {
+	_, err := r.db.ExecContext(ctx, "DELETE from todos WHERE item=$1", todo)
+	return err
+}
+
+func (r *repository) NewTODO(ctx context.Context, todo string) error {
+	_, err := r.db.ExecContext(ctx, "INSERT INTO todos VALUES (1$)", todo)
+	return err
+}
+
+func (r *repository) ReplaceTODO(ctx context.Context, new string, old string) error {
+	_, err := r.db.ExecContext(ctx, "UPDATE todos SET item=$1 WHERE item=$2", new, old)
+	return err
+}
+
+func (r *repository) ListTODOS(ctx context.Context) ([]string, error) {
 
 	var res string
 	var todos []string

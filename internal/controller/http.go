@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -56,7 +57,7 @@ func (hc *httpController) Run(ctx context.Context) error {
 
 func (hc *httpController) indexHandler(w http.ResponseWriter, req *http.Request) {
 
-	todos, err := hc.repository.Index(req.Context())
+	todos, err := hc.repository.ListTODOS(req.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -69,12 +70,61 @@ func (hc *httpController) indexHandler(w http.ResponseWriter, req *http.Request)
 }
 
 func (hc *httpController) postHandler(w http.ResponseWriter, req *http.Request) {
+
+	var request struct {
+		Item string `json:"item"`
+	}
+
+	err := json.NewDecoder(req.Body).Decode(&request)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = hc.repository.NewTODO(req.Context(), request.Item)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 }
 
 func (hc *httpController) putHandler(w http.ResponseWriter, req *http.Request) {
+
+	oldItem := req.URL.Query().Get("old_item")
+	if oldItem == "" {
+		http.Error(w, "provide the old item to get replaced", http.StatusBadRequest)
+		return
+	}
+
+	newItem := req.URL.Query().Get("new_item")
+	if newItem == "" {
+		http.Error(w, "provide the new item to be replaced", http.StatusBadRequest)
+		return
+	}
+
+	err := hc.repository.ReplaceTODO(req.Context(), newItem, oldItem)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 }
 
 func (hc *httpController) deleteHandler(w http.ResponseWriter, req *http.Request) {
+
+	item := req.URL.Query().Get("item")
+	if item == "" {
+		http.Error(w, "provide the item to be deleted", http.StatusBadRequest)
+		return
+	}
+
+	err := hc.repository.RemoveTODO(req.Context(), item)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 }
 
 func NewHTTPController(l *slog.Logger, c *HTTPConfig, r gateway.Respository) *httpController {
