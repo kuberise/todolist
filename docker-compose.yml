@@ -1,7 +1,23 @@
 version: '3.7'
 
 services:
+  webapp:
+    container_name: webapp_container
+    build:
+      context: ./webapp
+      args:
+        REACT_APP_BACKEND_URL: http://app:80
+      dockerfile: Dockerfile
+    ports:
+      - '1337:80'
+    networks:
+      - postgres
+    depends_on:
+      - app
+    # profiles:
+    #   - donotstart
   app:
+    container_name: app_container
     build: .
     configs:
       - source: configs.yaml
@@ -10,6 +26,9 @@ services:
       - postgres
     depends_on:
       - postgres
+    ports:
+      - '80:80'
+    restart: unless-stopped
 
   postgres:
     container_name: postgres_container
@@ -57,7 +76,7 @@ configs:
   configs.yaml:
     content: |
       http:
-        post: 80
+        port: 80
         shutdown_timeout: 10
 
       postgres:

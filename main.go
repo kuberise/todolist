@@ -29,7 +29,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	_, err = db.Exec("CREATE TABLE IF NOT EXISTS todos (title VARCHAR(255))")
+	_, err = db.Exec("CREATE TABLE IF NOT EXISTS todos (title VARCHAR(255) UNIQUE)")
 	if err != nil {
 		logger.Error("error creating table", "error", err)
 		os.Exit(1)

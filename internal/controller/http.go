@@ -55,7 +55,14 @@ func (hc *httpController) Run(ctx context.Context) error {
 	return g.Wait()
 }
 
+func enableCORS(w http.ResponseWriter) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "*")
+}
+
 func (hc *httpController) indexHandler(w http.ResponseWriter, req *http.Request) {
+
+	enableCORS(w)
 
 	todos, err := hc.repository.ListTODOS(req.Context())
 	if err != nil {
@@ -63,13 +70,19 @@ func (hc *httpController) indexHandler(w http.ResponseWriter, req *http.Request)
 		return
 	}
 
-	for _, item := range todos {
-		fmt.Fprintf(w, "%s\n", item)
+	b, err := json.Marshal(todos)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
+
+	fmt.Fprint(w, string(b))
 
 }
 
 func (hc *httpController) postHandler(w http.ResponseWriter, req *http.Request) {
+
+	enableCORS(w)
 
 	var request struct {
 		Item string `json:"item"`
@@ -89,29 +102,9 @@ func (hc *httpController) postHandler(w http.ResponseWriter, req *http.Request) 
 
 }
 
-func (hc *httpController) putHandler(w http.ResponseWriter, req *http.Request) {
-
-	oldItem := req.URL.Query().Get("old_item")
-	if oldItem == "" {
-		http.Error(w, "provide the old item to get replaced", http.StatusBadRequest)
-		return
-	}
-
-	newItem := req.URL.Query().Get("new_item")
-	if newItem == "" {
-		http.Error(w, "provide the new item to be replaced", http.StatusBadRequest)
-		return
-	}
-
-	err := hc.repository.ReplaceTODO(req.Context(), newItem, oldItem)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-}
-
 func (hc *httpController) deleteHandler(w http.ResponseWriter, req *http.Request) {
+
+	enableCORS(w)
 
 	item := req.URL.Query().Get("item")
 	if item == "" {
@@ -125,6 +118,7 @@ func (hc *httpController) deleteHandler(w http.ResponseWriter, req *http.Request
 		return
 	}
 
+	w.WriteHeader(http.StatusOK)
 }
 
 func NewHTTPController(l *slog.Logger, c *HTTPConfig, r gateway.Respository) *httpController {
@@ -141,9 +135,13 @@ func NewHTTPController(l *slog.Logger, c *HTTPConfig, r gateway.Respository) *ht
 		},
 	}
 
+	mux.HandleFunc("OPTIONS /", func(w http.ResponseWriter, r *http.Request) {
+		enableCORS(w)
+		w.WriteHeader(http.StatusOK)
+	})
+
 	mux.HandleFunc("GET /", hc.indexHandler)
 	mux.HandleFunc("POST /", hc.postHandler)
-	mux.HandleFunc("PUT /update", hc.putHandler)
 	mux.HandleFunc("DELETE /delete", hc.deleteHandler)
 
 	return &hc
