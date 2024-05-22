@@ -6,7 +6,7 @@ services:
     build:
       context: ./webapp
       args:
-        REACT_APP_BACKEND_URL: http://app:80
+        REACT_APP_BACKEND_URL: http://localhost:80
       dockerfile: Dockerfile
     ports:
       - '1337:80'
