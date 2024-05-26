@@ -6,7 +6,7 @@ services:
     build:
       context: ./webapp
       args:
-        REACT_APP_BACKEND_URL: http://localhost:80
+        REACT_APP_BACKEND_URL: http://localhost:8080
       dockerfile: Dockerfile
     ports:
       - '1337:80'
@@ -27,7 +27,7 @@ services:
     depends_on:
       - postgres
     ports:
-      - '80:80'
+      - '8080:80'
     restart: unless-stopped
 
   postgres:
@@ -45,7 +45,7 @@ services:
     networks:
       - postgres
     restart: unless-stopped
-  
+
   pgadmin:
     container_name: pgadmin_container
     image: dpage/pgadmin4
@@ -86,6 +86,3 @@ configs:
         password: passwd
         db_name: todosdb
         ssl_mode: disable
-
-  
-
