@@ -13,8 +13,8 @@ import (
 )
 
 type HTTPConfig struct {
-	Port            int `yaml:"port"`
-	ShutdownTimeout int `yaml:"shutdown_timeout"`
+	Port            int `cfg:"port"`
+	ShutdownTimeout int `cfg:"shutdown_timeout"`
 }
 
 type httpController struct {

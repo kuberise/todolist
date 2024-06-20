@@ -17,11 +17,7 @@ func main() {
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
-	cfg, err := config.New("/configs.yaml")
-	if err != nil {
-		logger.Error("error parsing config", "error", err)
-		os.Exit(1)
-	}
+	cfg := config.New(logger)
 
 	db, err := postgres.New(&cfg.Postgres)
 	if err != nil {
