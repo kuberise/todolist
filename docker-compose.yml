@@ -14,11 +14,20 @@ services:
       - postgres
     depends_on:
       - app
-    # profiles:
-    #   - donotstart
+    profiles:
+      - donotstart
   app:
     container_name: app_container
     build: .
+    environment:
+      TODOLIST_HTTP__PORT: 80
+      TODOLIST_HTTP__SHUTDOWN_TIMEOUT: 10
+      TODOLIST_POSTGRES__HOST: postgres
+      TODOLIST_POSTGRES__PORT: 5432
+      TODOLIST_POSTGRES__USER: postgres
+      TODOLIST_POSTGRES__PASSWORD: passwd
+      TODOLIST_POSTGRES__DB_NAME: todosdb
+      TODOLIST_POSTGRES__SSL_MODE: disable
     configs:
       - source: configs.yaml
         target: /configs.yaml
